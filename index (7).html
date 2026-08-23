@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gems Color Sort | Luxury Edition</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Montserrat', sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        :root {
+            --bg-color: #050508;
+            --card-bg: rgba(14, 14, 20, 0.94);
+            --gold-primary: #d4af37;
+            --gold-light: #fef08a;
+            --gold-gradient: linear-gradient(135deg, #bf953f 0%, #fcf6ba 25%, #b38728 50%, #fbf5b7 75%, #aa771c 100%);
+            --text-main: #ffffff;
+            --text-muted: #888899;
+            --tube-bg: rgba(255, 255, 255, 0.04);
+            --tube-border: rgba(212, 175, 55, 0.35);
+        }
+
+        body {
+            background-color: var(--bg-color);
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--text-main);
+            background-image: radial-gradient(circle at center, #111122 0%, #050508 100%);
+        }
+
+        /* Main Game Container */
+        #game-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            max-width: 480px;
+            max-height: 900px;
+            background: var(--bg-color);
+            box-shadow: 0 0 50px rgba(0,0,0,0.9);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        @media (min-width: 768px) {
+            #game-container {
+                width: 480px;
+                height: 850px;
+                border: 2px solid rgba(212, 175, 55, 0.3);
+                border-radius: 24px;
+            }
+        }
+
+        /* Screen Management */
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: rgba(5, 5, 8, 0.92);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            padding: 30px;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .screen.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        /* Luxury Card Styling */
+        .luxury-card {
+            background: var(--card-bg);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 24px;
+            padding: 30px 24px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.1);
+            text-align: center;
+        }
+
+        .logo-area { margin-bottom: 25px; }
+        .monogram {
+            width: 55px; height: 55px; margin: 0 auto 12px;
+            border: 2px solid var(--gold-primary); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(212, 175, 55, 0.08);
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.25);
+            font-size: 24px;
+        }
+        .luxury-card h1 { 
+            font-size: 24px; font-weight: 900; letter-spacing: 2px; margin-bottom: 4px;
+            background: var(--gold-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .game-subtitle { color: var(--gold-primary); font-size: 10px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 4px; }
+
+        /* Input Field Styling */
+        .luxury-input {
+            width: 100%;
+            padding: 14px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(212, 175, 55, 0.4);
+            border-radius: 12px;
+            color: var(--text-main);
+            font-size: 14px;
+            text-align: center;
+            outline: none;
+            margin-bottom: 15px;
+            transition: 0.3s;
+        }
+        .luxury-input:focus {
+            border-color: var(--gold-light);
+            box-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
+        }
+
+        /* Buttons */
+        .btn-luxury {
+            width: 100%; padding: 14px; background: var(--gold-gradient);
+            color: #000000; border: none; border-radius: 12px;
+            font-weight: 800; font-size: 13px; letter-spacing: 2px;
+            text-transform: uppercase; cursor: pointer; transition: all 0.3s ease;
+            box-shadow: 0 8px 20px rgba(191, 149, 63, 0.35);
+            margin-bottom: 12px;
+        }
+        .btn-luxury:hover { transform: translateY(-2px); filter: brightness(1.08); }
+        .btn-luxury:active { transform: translateY(0); }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(212, 175, 55, 0.4);
+            color: var(--text-main);
+            box-shadow: none;
+        }
+        .btn-secondary:hover { background: rgba(212, 175, 55, 0.15); color: var(--gold-primary); }
+
+        /* Game Header HUD */
+        #gameplay-screen {
+            justify-content: flex-start;
+            padding: 20px 15px;
+        }
+
+        .game-header {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .hud-badge {
+            background: rgba(15, 15, 25, 0.8);
+            border: 1px solid var(--tube-border);
+            border-radius: 12px;
+            padding: 8px 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--gold-primary);
+        }
+
+        .icon-btn {
+            background: rgba(15, 15, 25, 0.8);
+            border: 1px solid var(--tube-border);
+            color: var(--gold-primary);
+            width: 40px; height: 40px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; font-size: 16px; transition: 0.2s;
+        }
+        .icon-btn:hover { background: rgba(212, 175, 55, 0.15); }
+
+        /* Tubes Grid Arena */
+        #tubes-container {
+            flex: 1;
+            width: 100%;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-content: center;
+            gap: 16px;
+            padding: 10px 0;
+        }
+
+        .tube {
+            width: 56px;
+            height: 180px;
+            background: var(--tube-bg);
+            border: 2px solid var(--tube-border);
+            border-top: none;
+            border-radius: 0 0 28px 28px;
+            display: flex;
+            flex-direction: column-reverse;
+            align-items: center;
+            padding: 6px;
+            gap: 6px;
+            cursor: pointer;
+            position: relative;
+            transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .tube.selected {
+            transform: translateY(-12px);
+            border-color: var(--gold-light);
+            box-shadow: 0 10px 25px rgba(212, 175, 55, 0.3);
+            background: rgba(212, 175, 55, 0.05);
+        }
+
+        .tube::before {
+            content: '';
+            position: absolute;
+            top: -4px;
+            left: -4px;
+            right: -4px;
+            height: 6px;
+            background: var(--tube-border);
+            border-radius: 4px;
+        }
+
+        /* Gem Balls */
+        .gem {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            box-shadow: inset -3px -3px 8px rgba(0,0,0,0.6), 0 4px 10px rgba(0,0,0,0.4);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            animation: popIn 0.3s ease;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Luxury Gem Color Palette */
+        .gem-ruby { background: radial-gradient(circle at 30% 30%, #ff4d4d, #990000); box-shadow: inset -3px -3px 8px rgba(0,0,0,0.6), 0 0 12px rgba(255, 77, 77, 0.5); }
+        .gem-sapphire { background: radial-gradient(circle at 30% 30%, #4da6ff, #004499); box-shadow: inset -3px -3px 8px rgba(0,0,0,0.6), 0 0 12px rgba(77, 166, 255, 0.5); }
+        .gem-emerald { background: radial-gradient(circle at 30% 30%, #2ecc71, #145a32); box-shadow: inset -3px -3px 8px rgba(0,0,0,0.6), 0 0 12px rgba(46, 204, 113, 0.5); }
+        .gem-amber { background: radial-gradient(circle at 30% 30%, #f1c40f, #b7950b); box-shadow: inset -3px -3px 8px rgba(0,0,0,0.6), 0 0 12px rgba(241, 196, 15, 0.5); }
+        .gem-amethyst { background: radial-gradient(circle at 30% 30%, #9b59b6, #512e5f); box-shadow: inset -3px -3px 8px rgba(0,0,0,0.6), 0 0 12px rgba(155, 89, 182, 0.5); }
+
+        /* Bottom Action Toolbar */
+        .game-footer-toolbar {
+            width: 100%;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            background: rgba(10, 10, 15, 0.7);
+            border-top: 1px solid rgba(212, 175, 55, 0.15);
+            border-radius: 16px;
+        }
+
+        .tool-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .tool-btn span.tool-icon { font-size: 18px; }
+        .tool-btn:hover { color: var(--gold-primary); }
+
+        /* Level Win Modal */
+        #winModal {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(5, 5, 8, 0.85);
+            backdrop-filter: blur(10px);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 20;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        #winModal.active { display: flex; opacity: 1; }
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+
+        <!-- 1. START MENU SCREEN -->
+        <div id="mainMenuScreen" class="screen active">
+            <div class="luxury-card">
+                <div class="logo-area">
+                    <div class="monogram">💎</div>
+                    <div class="game-subtitle">Opulent Puzzle Experience</div>
+                    <h1>GEMS COLOR SORT</h1>
+                    <p style="color: var(--text-muted); font-size: 12px; margin-top: 6px;">Luxury Edition</p>
+                </div>
+                <!-- Player Name Input Field -->
+                <input type="text" id="playerNameInput" class="luxury-input" placeholder="Enter Your Name..." maxlength="15">
+                <button type="button" class="btn-luxury" id="startPlayBtn">Play Now</button>
+                <button type="button" class="btn-luxury btn-secondary" onclick="alert('All levels unlocked in Luxury Mode!')">Level Select</button>
+                <button type="button" class="btn-luxury btn-secondary" onclick="alert('Sound & Web Audio Enabled.')">Settings</button>
+            </div>
+        </div>
+
+        <!-- 2. GAMEPLAY SCREEN -->
+        <div id="gameplay-screen" class="screen">
+            <div class="game-header">
+                <button type="button" class="icon-btn" id="menuBtn">⚙</button>
+                <!-- Displaying User Name in HUD -->
+                <div class="hud-badge" id="playerNameDisplay">Player</div>
+                <div class="hud-badge" id="levelIndicator">Level 1</div>
+                <div class="hud-badge">🪙 <span id="coinCount">710</span></div>
+            </div>
+
+            <!-- Tubes Arena -->
+            <div id="tubes-container"></div>
+
+            <!-- Bottom Tools Bar -->
+            <div class="game-footer-toolbar">
+                <button type="button" class="tool-btn" onclick="undoMove()">
+                    <span class="tool-icon">↩</span> Undo
+                </button>
+                <button type="button" class="tool-btn" onclick="resetLevel()">
+                    <span class="tool-icon">🔄</span> Reset
+                </button>
+                <button type="button" class="tool-btn" onclick="addExtraTube()">
+                    <span class="tool-icon">➕</span> Add Tube
+                </button>
+                <button type="button" class="tool-btn" onclick="giveHint()">
+                    <span class="tool-icon">💡</span> Hint
+                </button>
+            </div>
+        </div>
+
+        <!-- 3. WIN MODAL -->
+        <div id="winModal">
+            <div class="luxury-card">
+                <div class="logo-area">
+                    <div class="monogram">🏆</div>
+                    <h1>VICTORY</h1>
+                    <p style="color: var(--gold-light);" id="winMessage">Gems Successfully Sorted!</p>
+                </div>
+                <button type="button" class="btn-luxury" id="nextLevelBtn">Next Level</button>
+                <button type="button" class="btn-luxury btn-secondary" onclick="showScreen('mainMenuScreen')">Main Menu</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        /* --- GAME STATE & CONFIGURATION --- */
+        let currentLevel = 1;
+        let coins = 710;
+        let playerName = "Player";
+        let selectedTubeIndex = null;
+        let tubes = [];
+        let historyStack = [];
+
+        // Color mapping classes for gems
+        const gemColors = ['gem-ruby', 'gem-sapphire', 'gem-emerald', 'gem-amber', 'gem-amethyst'];
+
+        /* --- WEB AUDIO API SOUND EFFECTS --- */
+        let audioCtx = null;
+        function initAudio() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+
+        function playSound(type) {
+            try {
+                initAudio();
+                if (!audioCtx) return;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                const now = audioCtx.currentTime;
+
+                if (type === 'select') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(587.33, now); // D5
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+                    osc.start(now); osc.stop(now + 0.1);
+                } else if (type === 'drop') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(440, now); // A4
+                    osc.frequency.linearRampToValueAtTime(880, now + 0.15);
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+                    osc.start(now); osc.stop(now + 0.15);
+                } else if (type === 'win') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(523.25, now);
+                    osc.frequency.setValueAtTime(659.25, now + 0.1);
+                    osc.frequency.setValueAtTime(783.99, now + 0.2);
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+                    osc.start(now); osc.stop(now + 0.5);
+                }
+            } catch (e) {}
+        }
+
+        /* --- SCREEN ROUTING --- */
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById('winModal').classList.remove('active');
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        document.getElementById('startPlayBtn').addEventListener('click', () => {
+            const inputVal = document.getElementById('playerNameInput').value.trim();
+            if (inputVal !== "") {
+                playerName = inputVal;
+            } else {
+                playerName = "Player";
+            }
+            // Display user name in HUD badge
+            document.getElementById('playerNameDisplay').innerText = playerName;
+            
+            showScreen('gameplay-screen');
+            loadLevel(currentLevel);
+        });
+
+        document.getElementById('menuBtn').addEventListener('click', () => {
+            showScreen('mainMenuScreen');
+        });
+
+        document.getElementById('nextLevelBtn').addEventListener('click', () => {
+            document.getElementById('winModal').classList.remove('active');
+            currentLevel++;
+            loadLevel(currentLevel);
+        });
+
+        /* --- LEVEL GENERATION & LOGIC --- */
+        function loadLevel(lvl) {
+            document.getElementById('levelIndicator').innerText = `Level ${lvl}`;
+            selectedTubeIndex = null;
+            historyStack = [];
+
+            // Determine number of colors and tubes based on level progression
+            let colorCount = Math.min(3 + Math.floor(lvl / 3), 5);
+            let emptyTubesCount = 2;
+            let totalTubes = colorCount + emptyTubesCount;
+
+            // Generate full sets of gems
+            let gemPool = [];
+            for (let i = 0; i < colorCount; i++) {
+                for (let j = 0; j < 4; j++) {
+                    gemPool.push(i);
+                }
+            }
+
+            // Shuffle pool
+            gemPool.sort(() => Math.random() - 0.5);
+
+            // Distribute into tubes (max 4 per tube)
+            tubes = [];
+            for (let i = 0; i < colorCount; i++) {
+                tubes.push(gemPool.splice(0, 4));
+            }
+            for (let i = 0; i < emptyTubesCount; i++) {
+                tubes.push([]);
+            }
+
+            renderTubes();
+        }
+
+        function renderTubes() {
+            const container = document.getElementById('tubes-container');
+            container.innerHTML = '';
+
+            tubes.forEach((tube, index) => {
+                const tubeEl = document.createElement('div');
+                tubeEl.className = `tube ${selectedTubeIndex === index ? 'selected' : ''}`;
+                tubeEl.onclick = () => handleTubeClick(index);
+
+                tube.forEach(gemColorIndex => {
+                    const gemEl = document.createElement('div');
+                    gemEl.className = `gem ${gemColors[gemColorIndex]}`;
+                    tubeEl.appendChild(gemEl);
+                });
+
+                container.appendChild(tubeEl);
+            });
+        }
+
+        /* --- PUZZLE MOVE MECHANICS --- */
+        function handleTubeClick(index) {
+            playSound('select');
+            if (selectedTubeIndex === null) {
+                if (tubes[index].length === 0) return; // Cannot select empty tube
+                selectedTubeIndex = index;
+            } else {
+                if (selectedTubeIndex === index) {
+                    selectedTubeIndex = null; // Deselect
+                } else {
+                    // Attempt move from selectedTubeIndex to index
+                    executeMove(selectedTubeIndex, index);
+                    selectedTubeIndex = null;
+                }
+            }
+            renderTubes();
+        }
+
+        function executeMove(from, to) {
+            if (tubes[from].length === 0) return;
+            const targetTube = tubes[to];
+            const sourceTube = tubes[from];
+
+            const gemToMove = sourceTube[sourceTube.length - 1];
+
+            // Check if destination is valid (empty or matches top gem and has space < 4)
+            if (targetTube.length === 0 || (targetTube[targetTube.length - 1] === gemToMove && targetTube.length < 4)) {
+                // Save state for undo
+                historyStack.push(JSON.parse(JSON.stringify(tubes)));
+
+                // Move all continuous matching gems
+                let count = 0;
+                for (let i = sourceTube.length - 1; i >= 0; i--) {
+                    if (sourceTube[i] === gemToMove) count++;
+                    else break;
+                }
+
+                let spaceLeft = 4 - targetTube.length;
+                let moveCount = Math.min(count, spaceLeft);
+
+                for (let i = 0; i < moveCount; i++) {
+                    targetTube.push(sourceTube.pop());
+                }
+
+                playSound('drop');
+                checkWinCondition();
+            }
+        }
+
+        function undoMove() {
+            if (historyStack.length > 0) {
+                tubes = historyStack.pop();
+                selectedTubeIndex = null;
+                renderTubes();
+            }
+        }
+
+        function resetLevel() {
+            loadLevel(currentLevel);
+        }
+
+        function addExtraTube() {
+            if (coins >= 100) {
+                coins -= 100;
+                document.getElementById('coinCount').innerText = coins;
+                tubes.push([]);
+                renderTubes();
+            } else {
+                alert('Not enough coins! Need 100 🪙');
+            }
+        }
+
+        function giveHint() {
+            alert('Hint: Look for empty tubes or matching top gems to consolidate colors.');
+        }
+
+        function checkWinCondition() {
+            let isWon = tubes.every(tube => tube.length === 0 || (tube.length === 4 && tube.every(g => g === tube[0])));
+            if (isWon) {
+                playSound('win');
+                coins += 50;
+                document.getElementById('coinCount').innerText = coins;
+                document.getElementById('winMessage').innerText = `Great Job, ${playerName}! Gems Sorted Successfully!`;
+                setTimeout(() => {
+                    document.getElementById('winModal').classList.add('active');
+                }, 400);
+            }
+        }
+    </script>
+</body>
+</html>
